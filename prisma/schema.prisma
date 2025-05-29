@@ -14,7 +14,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo para restaurantes
+//////////////////////////
+// Modelos de la base de datos
+//////////////////////////
+
+// Modelo de restaurantes
 model Restaurants {
   id         Int          @id @default(autoincrement())
   name       String
@@ -25,14 +29,14 @@ model Restaurants {
   Tables     Tables[]
 }
 
-// Modelo para roles
+// Modelo de roles (ej: administrador, mesero, etc.)
 model Roles {
   id    Int     @id @default(autoincrement())
   role  String
-  Users Users[]
+  Users Users[] // Relación con los usuarios que tienen este rol
 }
 
-// Modelo para usuarios
+// Modelo de usuarios (empleados del restaurante)
 model Users {
   id            Int         @id @default(autoincrement())
   name          String
@@ -43,9 +47,10 @@ model Users {
   id_restaurant Int
   Role          Roles       @relation(fields: [id_role], references: [id])
   id_role       Int
+  Orders        Orders[] // Relación con las órdenes tomadas por este usuario
 }
 
-// Modelo para las categorias de cada restaurante
+// Modelo de categorías (ej: entradas, bebidas, postres)
 model Categories {
   id            Int         @id @default(autoincrement())
   name          String
@@ -53,21 +58,51 @@ model Categories {
   id_restaurant Int
 }
 
-// Modelo para los platos de cada restaurante
+// Modelo de platos del menú
 model Dishes {
-  id            Int         @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   name          String
   price         Int
   url_img       String
+  restaurant    Restaurants    @relation(fields: [id_restaurant], references: [id])
+  id_restaurant Int
+  Order_dishes  Order_dishes[] // Relación con las órdenes que incluyen este plato
+}
+
+// Modelo de mesas del restaurante
+model Tables {
+  id            Int         @id @default(autoincrement())
+  name          String
+  status        String // Estado actual (libre, ocupada, reservada, etc.)
   restaurant    Restaurants @relation(fields: [id_restaurant], references: [id])
   id_restaurant Int
 }
 
-// Modelo para determinar las mesas de cada restaurante
-model Tables {
-  id            Int         @id @default(autoincrement())
-  name          String
-  status        String
-  restaurant    Restaurants @relation(fields: [id_restaurant], references: [id])
-  id_restaurant Int
+// Modelo de órdenes tomadas por los meseros
+model Orders {
+  id           Int            @id @default(autoincrement())
+  Waiter       Users          @relation(fields: [id_user], references: [id])
+  id_user      Int
+  Order_dishes Order_dishes[] // Relación con los platos dentro de esta orden
+  Bills        Bills[] // Relación con la factura asociada a esta orden
+}
+
+// Modelo intermedio que conecta órdenes con platos específicos
+model Order_dishes {
+  id       Int     @id @default(autoincrement())
+  Order    Orders  @relation(fields: [id_order], references: [id])
+  id_order Int
+  Dish     Dishes  @relation(fields: [id_dish], references: [id])
+  id_dish  Int
+  quantity Int
+  note     String?
+}
+
+// Modelo de facturación (facturas generadas por cada orden)
+model Bills {
+  id           Int    @id @default(autoincrement())
+  Order        Orders @relation(fields: [id_order], references: [id])
+  id_order     Int
+  total_amount Int
+  status       String // Estado (pagado, pendiente, anulado, etc.)
 }
