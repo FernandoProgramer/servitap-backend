@@ -1,0 +1,14 @@
+services:
+  mysql_database:
+    image: mysql
+    container_name: mysql_database_servitap
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_servitap_volume:/var/lib/mysql
+
+volumes:
+  mysql_servitap_volume:
