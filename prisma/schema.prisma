@@ -14,9 +14,60 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Modelo para restaurantes
+model Restaurants {
+  id         Int          @id @default(autoincrement())
+  name       String
+  nit        String
+  Users      Users[]
+  Dishes     Dishes[]
+  Categories Categories[]
+  Tables     Tables[]
+}
+
+// Modelo para roles
+model Roles {
+  id    Int     @id @default(autoincrement())
+  role  String
+  Users Users[]
+}
+
+// Modelo para usuarios
 model Users {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
+  id            Int         @id @default(autoincrement())
+  name          String
+  lastname      String
+  email         String      @unique
+  password      String
+  Restaurant    Restaurants @relation(fields: [id_restaurant], references: [id])
+  id_restaurant Int
+  Role          Roles       @relation(fields: [id_role], references: [id])
+  id_role       Int
+}
+
+// Modelo para las categorias de cada restaurante
+model Categories {
+  id            Int         @id @default(autoincrement())
+  name          String
+  restaurant    Restaurants @relation(fields: [id_restaurant], references: [id])
+  id_restaurant Int
+}
+
+// Modelo para los platos de cada restaurante
+model Dishes {
+  id            Int         @id @default(autoincrement())
+  name          String
+  price         Int
+  url_img       String
+  restaurant    Restaurants @relation(fields: [id_restaurant], references: [id])
+  id_restaurant Int
+}
+
+// Modelo para determinar las mesas de cada restaurante
+model Tables {
+  id            Int         @id @default(autoincrement())
+  name          String
+  status        String
+  restaurant    Restaurants @relation(fields: [id_restaurant], references: [id])
+  id_restaurant Int
 }
