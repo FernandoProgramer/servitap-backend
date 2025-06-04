@@ -1,15 +1,18 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from "@nestjs/common";
-import {  Response } from "express";
+import { Response } from "express";
+import { buildResponse } from "./build-response";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
-    private handleException(response: Response, statusCode: number, message: string) {
-        return response.status(statusCode).json({
+    private buildErrorResponse(response: Response, statusCode: number, message: string) {
+        const payload = buildResponse({
             successful: false,
             message,
-            statusCode,
-        })
+        });
+
+        return response.status(statusCode).json(payload);
+
     }
 
     catch(exception: any, host: ArgumentsHost) {
@@ -19,10 +22,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         if (exception instanceof HttpException) {
             const exceptionResponse: any = exception.getResponse();
-
-            const message: string = exceptionResponse.message;
-
-            return this.handleException(response, exception.getStatus(), message)
+            const message: string = Array.isArray(exceptionResponse.message) ? exceptionResponse.message.join(', ') : exceptionResponse.message;
+            return this.buildErrorResponse(response, exception.getStatus(), message)
         }
 
         // Debug mode
@@ -30,7 +31,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             console.error('Exception Debugging =>> ', exception);
         }
 
-        return this.handleException(response, 500, "Internal server error");
+        return this.buildErrorResponse(response, 500, "Internal server error");
     }
 
 }

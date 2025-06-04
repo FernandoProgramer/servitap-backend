@@ -1,38 +1,67 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { Restaurants } from '@prisma/client';
+import { FindOrThrow } from 'src/common/utils/find-or-throw';
+import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
+import { buildResponse } from 'src/common/utils/build-response';
 
 @Injectable()
 export class RestaurantsService {
 
   constructor(private prisma: PrismaService) { }
 
-  create(data: CreateRestaurantDto): Promise<Restaurants> {
-    return this.prisma.restaurants.create({
-      data
+  private async findOrThrowById(id: number): Promise<Restaurants> {
+    return await FindOrThrow({
+      finder: () => this.prisma.restaurants.findUnique({ where: { id } }),
+      entityName: 'Restaurant',
+      details: `By Id ${id}`
     });
   }
 
-  getAll(): Promise<Restaurants[]> {
-    return this.prisma.restaurants.findMany();
+  private buildResponseRestaurants(data: Restaurants | Restaurants[], message: string = 'OK in restaurants') {
+    return buildResponse({ key: 'restaurant', data, message, });
   }
 
-  async getOne(id: number): Promise<Restaurants> {
-    const restaurant = await this.prisma.restaurants.findFirst({ where: { id } });
-    if (!restaurant) throw new NotFoundException(`Not found restaurant by id ${id}`);
-    return restaurant;
+  async create(data: CreateRestaurantDto): Promise<ServiceResponse<Restaurants>> {
+    const restaurant = await this.prisma.restaurants.create({ data });
+    return this.buildResponseRestaurants(restaurant, 'Restaurant was created successfully');
   }
 
-  async update(id: number, data: UpdateRestaurantDto): Promise<UpdateRestaurantDto> {
-    const restaurant = await this.prisma.restaurants.findFirst({
-      where: { id }
-    });
-    if (!restaurant) throw new NotFoundException(`Not found restaurant by id ${id} to update`);
-    return await this.prisma.restaurants.update({
+  async getAll(): Promise<ServiceResponse<Restaurants[]>> {
+    const restaurants = await this.prisma.restaurants.findMany();
+    return this.buildResponseRestaurants(restaurants);
+  }
+
+  async getOne(id: number): Promise<ServiceResponse<Restaurants>> {
+    const restaurant = await this.findOrThrowById(id);
+    return this.buildResponseRestaurants(restaurant, 'Restaurant found');
+
+  }
+
+  async update(
+    id: number,
+    data: UpdateRestaurantDto
+  ): Promise<ServiceResponse<Restaurants>> {
+
+    await this.findOrThrowById(id);
+
+    const restaurant = await this.prisma.restaurants.update({
       where: { id },
-      data
+      data,
     });
+
+    return this.buildResponseRestaurants(restaurant, 'Restaurant was updated successfully')
+  }
+
+  async delete(id: number): Promise<ServiceResponse<Restaurants>> {
+
+    await this.findOrThrowById(id);
+
+    const restaurant = await this.prisma.restaurants.delete({ where: { id } });
+
+    return this.buildResponseRestaurants(restaurant, 'Restaurant was deleted successfully')
+
   }
 }
