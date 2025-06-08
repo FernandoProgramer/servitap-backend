@@ -12,7 +12,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         });
 
         return response.status(statusCode).json(payload);
-
     }
 
     catch(exception: any, host: ArgumentsHost) {
@@ -22,6 +21,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         if (exception instanceof HttpException) {
             const exceptionResponse: any = exception.getResponse();
+
             const message: string = Array.isArray(exceptionResponse.message) ? exceptionResponse.message.join(', ') : exceptionResponse.message;
             return this.buildErrorResponse(response, exception.getStatus(), message)
         }

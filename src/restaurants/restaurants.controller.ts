@@ -17,13 +17,13 @@ export class RestaurantsController {
   @Get()
   @HttpCode(200)
   getAll() {
-    return this.restaurantsService.getAll();
+    return this.restaurantsService.findAll();
   }
 
   @Get(':id')
   @HttpCode(200)
   getOne(@Param() { id }: IdDto) {
-    return this.restaurantsService.getOne(id);
+    return this.restaurantsService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,7 +35,7 @@ export class RestaurantsController {
   @Delete(':id')
   @HttpCode(200)
   delete(@Param() { id }: IdDto) {
-    return this.restaurantsService.delete(id)
+    return this.restaurantsService.remove(id)
   }
 
 }

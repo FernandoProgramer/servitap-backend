@@ -1,15 +1,12 @@
 import { NotFoundException } from "@nestjs/common";
+import { FindOrThrowProps } from "../interfaces/find-or-throw.interface";
 
-interface FindOrThrowInterface<T> {
-    finder: () => Promise<T | null | undefined>
-    entityName: string
-    details?: string
-}
+
 export async function FindOrThrow<T>({
     finder,
     entityName,
     details,
-}: FindOrThrowInterface<T>): Promise<T> {
+}: FindOrThrowProps<T>): Promise<T> {
 
     const result = await finder();
 
